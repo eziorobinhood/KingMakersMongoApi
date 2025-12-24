@@ -8,7 +8,7 @@ authRouter.post('/user/signup', async (req, res) => {
   const { phnumber, name, dateofbirth, gender, occupation, upi_id } = req.body;
   const existingUser = await User.findOne({phnumber});
   if(existingUser){
-    return res.status(200).json({ error: 'User with this phone number already exists' });
+    return res.status(400).json({ error: 'User with this phone number already exists' });
   }
 
   let user = new User({
@@ -26,7 +26,8 @@ authRouter.post('/user/signup', async (req, res) => {
 
 authRouter.get('/user/login', async (req, res) => {
   // Login logic here
-  const existingUser = await User.findOne({phnumber: req.body.phnumber});
+  const phnumber = req.body.phnumber || req.query.phnumber;
+  const existingUser = await User.findOne({phnumber});
     if(!existingUser){
       return res.status(404).json({ error: 'User not found' });
     }

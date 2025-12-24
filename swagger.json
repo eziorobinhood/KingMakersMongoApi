@@ -1,0 +1,80 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "KingMakers Mongo API",
+    "version": "1.0.0",
+    "description": "API documentation for KingMakersMongoApi"
+  },
+  "servers": [
+    { "url": "http://localhost:3000" }
+  ],
+  "paths": {
+    "/user/signup": {
+      "post": {
+        "summary": "Create a new user",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "400": { "description": "Bad request" }
+        }
+      }
+    },
+    "/user/login": {
+      "get": {
+        "summary": "Log in a user",
+        "parameters": [
+          {
+            "name": "phnumber",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Login successful" },
+          "404": { "description": "User not found" }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "UserInput": {
+        "type": "object",
+        "properties": {
+          "phnumber": { "type": "string" },
+          "name": { "type": "string" },
+          "dateofbirth": { "type": "string" },
+          "gender": { "type": "string" },
+          "occupation": { "type": "string" },
+          "upi_id": { "type": "string" }
+        },
+        "required": ["phnumber", "name", "dateofbirth", "gender", "occupation", "upi_id"]
+      },
+      "User": {
+        "allOf": [
+          { "$ref": "#/components/schemas/UserInput" },
+          { "type": "object", "properties": { "_id": { "type": "string" } } }
+        ]
+      }
+    }
+  }
+}

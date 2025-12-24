@@ -1,12 +1,14 @@
 const express   = require('express');
 const authRouter = require('./router/auth');
 const mongoose = require('mongoose');
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./swagger.json');
 
 
 const app = express();
-const port = 3000;
 app.use(express.json());
 app.use(authRouter);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 
 const PORT = 3000;
