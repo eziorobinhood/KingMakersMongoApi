@@ -1,4 +1,5 @@
 const express   = require('express');
+const cors = require('cors');
 const authRouter = require('./router/auth');
 const mongoose = require('mongoose');
 const swaggerUi = require('swagger-ui-express');
@@ -7,6 +8,7 @@ const swaggerDocument = require('./swagger.json');
 
 const app = express();
 app.use(express.json());
+app.use(cors());
 app.use(authRouter);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
