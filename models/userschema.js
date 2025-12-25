@@ -6,7 +6,8 @@ const userSchema = new mongoose.Schema({
   dateofbirth: { type: String, required: true },
   gender: { type: String, required: true },
   occupation: { type: String, required: true },
-  upi_id: { type: String, required: true, unique: true }
+  upi_id: { type: String, required: true, unique: true },
+  investedamount: { type: Number, default: 0 }
 });
 
 const User = mongoose.model('User', userSchema);

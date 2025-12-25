@@ -35,4 +35,18 @@ authRouter.get('/user/login', async (req, res) => {
 });
 
 
+authRouter.post('/user/updatepayment', async (req, res) => {
+  // Update payment details logic here
+  const { upi_id, investedamount } = req.body;
+  const user = await User.findOneAndUpdate(
+    { upi_id },
+    { $set: { investedamount } },
+    { new: true }
+  );
+  if (!user) {
+    return res.status(404).json({ error: 'Enter valid UPI id' });
+  }
+  res.json({ message: 'Payment details updated successfully', user });
+});
+
 module.exports = authRouter;
