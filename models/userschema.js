@@ -7,7 +7,9 @@ const userSchema = new mongoose.Schema({
   gender: { type: String, required: true },
   occupation: { type: String, required: true },
   upi_id: { type: String, required: true, unique: true },
-  investedamount: { type: Number, default: 0 }
+  investedamount: { type: Number, default: 0 },
+  given_referral_code: { type: String, unique: true },
+  referral_code_generated: { type: String, unique: true }
 });
 
 const User = mongoose.model('User', userSchema);

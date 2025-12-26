@@ -65,9 +65,10 @@
           "dateofbirth": { "type": "string" },
           "gender": { "type": "string" },
           "occupation": { "type": "string" },
-          "upi_id": { "type": "string" }
+          "upi_id": { "type": "string" },
+          "given_referral_code": { "type": "string" }
         },
-        "required": ["phnumber", "name", "dateofbirth", "gender", "occupation", "upi_id"]
+        "required": ["phnumber", "name", "dateofbirth", "gender", "occupation", "upi_id","given_referral_code"]
       },
       "User": {
         "allOf": [

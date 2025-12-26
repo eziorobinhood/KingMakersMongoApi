@@ -5,7 +5,7 @@ const authRouter = express.Router();
 
 authRouter.post('/user/signup', async (req, res) => {
   // Signup logic here
-  const { phnumber, name, dateofbirth, gender, occupation, upi_id } = req.body;
+  const { phnumber, name, dateofbirth, gender, occupation, upi_id, given_referral_code } = req.body;
   const existingUser = await User.findOne({phnumber});
   if(existingUser){
     return res.status(400).json({ error: 'User with this phone number already exists' });
@@ -17,10 +17,18 @@ authRouter.post('/user/signup', async (req, res) => {
     dateofbirth,
     gender,
     occupation,
-    upi_id
+    upi_id,
+    given_referral_code,
+    referral_code_generated: generateReferralCode(10)
   });
   user = await user.save();
   res.json({user});
+});
+
+authRouter.get('/allusers', async (req, res) => {
+  // Fetch all users logic here
+  const users = await User.find();
+  res.json({ users });
 });
 
 
@@ -48,5 +56,15 @@ authRouter.post('/user/updatepayment', async (req, res) => {
   }
   res.json({ message: 'Payment details updated successfully', user });
 });
+
+
+function generateReferralCode(length) {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let referralCode = '';
+  for (let i = 0; i < length; i++) {
+    referralCode += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+  return referralCode;
+}
 
 module.exports = authRouter;
