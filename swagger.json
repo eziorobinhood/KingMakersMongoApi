@@ -1,128 +1,98 @@
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "KingMakers Mongo API",
-    "version": "1.0.0",
-    "description": "API documentation for KingMakersMongoApi"
+    "title": "User Authentication & Referral API",
+    "description": "API documentation for User Signup, Phone.email OTP Verification, Referrals, and Payments.",
+    "version": "1.0.0"
   },
   "servers": [
     {
-      "url": "http://localhost:3000"
+      "url": "http://localhost:5000",
+      "description": "Local server"
     }
   ],
   "paths": {
     "/user/signup": {
       "post": {
-        "summary": "Create a new user",
-        "tags": ["Authentication"],
+        "summary": "Register a new user",
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UserInput"
+                "type": "object",
+                "properties": {
+                  "phnumber": { "type": "string" },
+                  "name": { "type": "string" },
+                  "dateofbirth": { "type": "string" },
+                  "gender": { "type": "string" },
+                  "occupation": { "type": "string" },
+                  "upi_id": { "type": "string" },
+                  "given_referral_code": { "type": "string" }
+                },
+                "required": ["phnumber", "name", "upi_id"]
               }
             }
           }
         },
         "responses": {
-          "200": {
-            "description": "User created successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/User"
+          "200": { "description": "User created successfully" },
+          "400": { "description": "User already exists" }
+        }
+      }
+    },
+    "/api/verify-otp": {
+      "post": {
+        "summary": "Verify Phone.email OTP",
+        "description": "Receives the automated JSON URL from the frontend and fetches verified user data from Phone.email servers.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "user_json_url": { "type": "string", "example": "https://user.phone.email/user_abc123.json" }
                 }
               }
             }
-          },
-          "400": {
-            "description": "User with this phone number already exists"
           }
+        },
+        "responses": {
+          "200": { "description": "Phone verified successfully" },
+          "400": { "description": "Missing user_json_url" },
+          "500": { "description": "Internal server error or external fetch failed" }
         }
       }
     },
     "/user/login": {
       "get": {
-        "summary": "Log in a user",
-        "tags": ["Authentication"],
+        "summary": "User Login",
         "parameters": [
           {
             "name": "phnumber",
             "in": "query",
             "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "schema": { "type": "string" }
           }
         ],
         "responses": {
-          "200": {
-            "description": "Login successful"
-          },
-          "404": {
-            "description": "User not found"
-          }
-        }
-      }
-    },
-    "/allusers": {
-      "get": {
-        "summary": "Fetch all registered users",
-        "tags": ["Admin"],
-        "responses": {
-          "200": {
-            "description": "A list of users",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "users": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/User"
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
+          "200": { "description": "Login successful" },
+          "404": { "description": "User not found" }
         }
       }
     },
     "/referral-leaderboard": {
       "get": {
-        "summary": "Get leaderboard based on referral counts",
-        "tags": ["Referrals"],
+        "summary": "Get referral rankings",
         "responses": {
-          "200": {
-            "description": "Leaderboard fetched successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": { "type": "string" },
-                    "winner": { "$ref": "#/components/schemas/LeaderboardEntry" },
-                    "fullList": {
-                      "type": "array",
-                      "items": { "$ref": "#/components/schemas/LeaderboardEntry" }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "500": { "description": "Server error" }
+          "200": { "description": "Returns winner and list of users with referral counts" }
         }
       }
     },
     "/user/updatepayment": {
       "post": {
-        "summary": "Update user payment/investment details",
-        "tags": ["User Actions"],
+        "summary": "Update investment and payment details",
         "requestBody": {
           "required": true,
           "content": {
@@ -132,62 +102,22 @@
                 "properties": {
                   "upi_id": { "type": "string" },
                   "investedamount": { "type": "number" }
-                },
-                "required": ["upi_id", "investedamount"]
+                }
               }
             }
           }
         },
         "responses": {
-          "200": { "description": "Payment details updated successfully" },
-          "404": { "description": "Enter valid UPI id" }
+          "200": { "description": "Payment details updated" },
+          "404": { "description": "Invalid UPI ID" }
         }
       }
-    }
-  },
-  "components": {
-    "schemas": {
-      "UserInput": {
-        "type": "object",
-        "properties": {
-          "phnumber": { "type": "string" },
-          "name": { "type": "string" },
-          "dateofbirth": { "type": "string" },
-          "gender": { "type": "string" },
-          "occupation": { "type": "string" },
-          "upi_id": { "type": "string" },
-          "given_referral_code": { "type": "string" }
-        },
-        "required": [
-          "phnumber",
-          "name",
-          "dateofbirth",
-          "gender",
-          "occupation",
-          "upi_id",
-          "given_referral_code"
-        ]
-      },
-      "User": {
-        "allOf": [
-          { "$ref": "#/components/schemas/UserInput" },
-          {
-            "type": "object",
-            "properties": {
-              "_id": { "type": "string" },
-              "referral_code_generated": { "type": "string" },
-              "investedamount": { "type": "number", "default": 0 }
-            }
-          }
-        ]
-      },
-      "LeaderboardEntry": {
-        "type": "object",
-        "properties": {
-          "name": { "type": "string" },
-          "phone": { "type": "string" },
-          "myReferralCode": { "type": "string" },
-          "totalReferrals": { "type": "integer" }
+    },
+    "/allusers": {
+      "get": {
+        "summary": "Get all registered users",
+        "responses": {
+          "200": { "description": "List of all users" }
         }
       }
     }

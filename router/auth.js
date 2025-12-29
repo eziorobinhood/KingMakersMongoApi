@@ -25,6 +25,56 @@ authRouter.post('/user/signup', async (req, res) => {
   res.json({user});
 });
 
+authRouter.post('/api/verify-otp', (req, res) => {
+    // 1. Receive the automated URL sent from your React frontend
+    const { user_json_url } = req.body;
+
+    if (!user_json_url) {
+        return res.status(400).json({ error: "Missing user_json_url" });
+    }
+
+    // 2. Your backend now fetches the actual user data from Phone.email
+    https.get(user_json_url, (apiRes) => {
+        let data = '';
+
+        apiRes.on('data', (chunk) => {
+            data += chunk;
+        });
+
+        apiRes.on('end', () => {
+            try {
+                const jsonData = JSON.parse(data);
+
+                // 3. Extract the verified details
+                const userData = {
+                    countryCode: jsonData.user_country_code,
+                    phoneNumber: jsonData.user_phone_number,
+                    firstName: jsonData.user_first_name,
+                    lastName: jsonData.user_last_name
+                };
+
+                console.log("Verified User:", userData);
+
+                // 4. Handle your internal logic here (e.g., Save to DB or Create JWT)
+                // res.cookie('token', 'your_generated_jwt_here'); 
+
+                // Send success response back to React
+                res.status(200).json({
+                    success: true,
+                    message: "Phone verified successfully",
+                    user: userData
+                });
+
+            } catch (error) {
+                res.status(500).json({ error: "Failed to parse user data" });
+            }
+        });
+
+    }).on("error", (err) => {
+        res.status(500).json({ error: "Request to Phone.email failed: " + err.message });
+    });
+});
+
 authRouter.get('/referral-leaderboard', async (req, res) => {
     try {
         // 1. Fetch all users from the database
@@ -57,7 +107,7 @@ authRouter.get('/referral-leaderboard', async (req, res) => {
 
         res.status(200).json({
             status: "success",
-            winner: leaderBoard[0], // Sri Shreya will be here with a count of 2
+            winner: leaderBoard[0], 
             fullList: leaderBoard
         });
 
