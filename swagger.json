@@ -6,12 +6,15 @@
     "description": "API documentation for KingMakersMongoApi"
   },
   "servers": [
-    { "url": "http://localhost:3000" }
+    {
+      "url": "http://localhost:3000"
+    }
   ],
   "paths": {
     "/user/signup": {
       "post": {
         "summary": "Create a new user",
+        "tags": ["Authentication"],
         "requestBody": {
           "required": true,
           "content": {
@@ -24,7 +27,7 @@
         },
         "responses": {
           "200": {
-            "description": "User created",
+            "description": "User created successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -33,24 +36,111 @@
               }
             }
           },
-          "400": { "description": "Bad request" }
+          "400": {
+            "description": "User with this phone number already exists"
+          }
         }
       }
     },
     "/user/login": {
       "get": {
         "summary": "Log in a user",
+        "tags": ["Authentication"],
         "parameters": [
           {
             "name": "phnumber",
             "in": "query",
             "required": true,
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
-          "200": { "description": "Login successful" },
-          "404": { "description": "User not found" }
+          "200": {
+            "description": "Login successful"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      }
+    },
+    "/allusers": {
+      "get": {
+        "summary": "Fetch all registered users",
+        "tags": ["Admin"],
+        "responses": {
+          "200": {
+            "description": "A list of users",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "users": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/User"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/referral-leaderboard": {
+      "get": {
+        "summary": "Get leaderboard based on referral counts",
+        "tags": ["Referrals"],
+        "responses": {
+          "200": {
+            "description": "Leaderboard fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string" },
+                    "winner": { "$ref": "#/components/schemas/LeaderboardEntry" },
+                    "fullList": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/LeaderboardEntry" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": { "description": "Server error" }
+        }
+      }
+    },
+    "/user/updatepayment": {
+      "post": {
+        "summary": "Update user payment/investment details",
+        "tags": ["User Actions"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "upi_id": { "type": "string" },
+                  "investedamount": { "type": "number" }
+                },
+                "required": ["upi_id", "investedamount"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Payment details updated successfully" },
+          "404": { "description": "Enter valid UPI id" }
         }
       }
     }
@@ -68,13 +158,37 @@
           "upi_id": { "type": "string" },
           "given_referral_code": { "type": "string" }
         },
-        "required": ["phnumber", "name", "dateofbirth", "gender", "occupation", "upi_id","given_referral_code"]
+        "required": [
+          "phnumber",
+          "name",
+          "dateofbirth",
+          "gender",
+          "occupation",
+          "upi_id",
+          "given_referral_code"
+        ]
       },
       "User": {
         "allOf": [
           { "$ref": "#/components/schemas/UserInput" },
-          { "type": "object", "properties": { "_id": { "type": "string" } } }
+          {
+            "type": "object",
+            "properties": {
+              "_id": { "type": "string" },
+              "referral_code_generated": { "type": "string" },
+              "investedamount": { "type": "number", "default": 0 }
+            }
+          }
         ]
+      },
+      "LeaderboardEntry": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "phone": { "type": "string" },
+          "myReferralCode": { "type": "string" },
+          "totalReferrals": { "type": "integer" }
+        }
       }
     }
   }

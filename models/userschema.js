@@ -8,7 +8,7 @@ const userSchema = new mongoose.Schema({
   occupation: { type: String, required: true },
   upi_id: { type: String, required: true, unique: true },
   investedamount: { type: Number, default: 0 },
-  given_referral_code: { type: String, unique: true },
+  given_referral_code: { type: String,},
   referral_code_generated: { type: String, unique: true }
 });
 
