@@ -1,20 +1,36 @@
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "User Authentication & Referral API",
-    "description": "API documentation for User Signup, Phone.email OTP Verification, Referrals, and Payments.",
-    "version": "1.0.0"
+    "title": "KingMakers Mongo API",
+    "version": "1.1.0",
+    "description": "API documentation including OTP verification, password hashing, and referral logic."
   },
   "servers": [
-    {
-      "url": "http://localhost:5000",
-      "description": "Local server"
-    }
+    { "url": "https://king-makers-mongo-api.vercel.app" }
   ],
   "paths": {
     "/user/signup": {
       "post": {
-        "summary": "Register a new user",
+        "summary": "Register a new user with hashed password",
+        "tags": ["Authentication"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UserInput" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "User created", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/User" } } } },
+          "400": { "description": "User already exists" }
+        }
+      }
+    },
+    "/user/login": {
+      "post": {
+        "summary": "Login with phone and password",
+        "tags": ["Authentication"],
         "requestBody": {
           "required": true,
           "content": {
@@ -23,28 +39,23 @@
                 "type": "object",
                 "properties": {
                   "phnumber": { "type": "string" },
-                  "name": { "type": "string" },
-                  "dateofbirth": { "type": "string" },
-                  "gender": { "type": "string" },
-                  "occupation": { "type": "string" },
-                  "upi_id": { "type": "string" },
-                  "given_referral_code": { "type": "string" }
+                  "password": { "type": "string" }
                 },
-                "required": ["phnumber", "name", "upi_id"]
+                "required": ["phnumber", "password"]
               }
             }
           }
         },
         "responses": {
-          "200": { "description": "User created successfully" },
-          "400": { "description": "User already exists" }
+          "200": { "description": "Login successful" },
+          "400": { "description": "Invalid credentials" }
         }
       }
     },
     "/api/verify-otp": {
       "post": {
-        "summary": "Verify Phone.email OTP",
-        "description": "Receives the automated JSON URL from the frontend and fetches verified user data from Phone.email servers.",
+        "summary": "Verify phone via Phone.email JSON URL",
+        "tags": ["Verification"],
         "requestBody": {
           "required": true,
           "content": {
@@ -52,7 +63,7 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "user_json_url": { "type": "string", "example": "https://user.phone.email/user_abc123.json" }
+                  "user_json_url": { "type": "string", "example": "https://auth.phone.email/getuser/..." }
                 }
               }
             }
@@ -60,39 +71,50 @@
         },
         "responses": {
           "200": { "description": "Phone verified successfully" },
-          "400": { "description": "Missing user_json_url" },
-          "500": { "description": "Internal server error or external fetch failed" }
+          "500": { "description": "Verification failed" }
         }
       }
     },
-    "/user/login": {
-      "get": {
-        "summary": "User Login",
+    "/user/delete": {
+      "delete": {
+        "summary": "Delete a user by phone number",
+        "tags": ["User Actions"],
         "parameters": [
           {
             "name": "phnumber",
             "in": "query",
-            "required": true,
+            "description": "Phone number of user to delete",
             "schema": { "type": "string" }
           }
         ],
         "responses": {
-          "200": { "description": "Login successful" },
+          "200": { "description": "User deleted successfully" },
           "404": { "description": "User not found" }
         }
       }
     },
     "/referral-leaderboard": {
       "get": {
-        "summary": "Get referral rankings",
+        "summary": "Get referral leaderboard",
+        "tags": ["Referrals"],
         "responses": {
-          "200": { "description": "Returns winner and list of users with referral counts" }
+          "200": { "description": "Leaderboard data" }
+        }
+      }
+    },
+    "/allusers": {
+      "get": {
+        "summary": "Get all users",
+        "tags": ["Admin"],
+        "responses": {
+          "200": { "description": "List of all users" }
         }
       }
     },
     "/user/updatepayment": {
       "post": {
-        "summary": "Update investment and payment details",
+        "summary": "Update investment amount",
+        "tags": ["User Actions"],
         "requestBody": {
           "required": true,
           "content": {
@@ -108,17 +130,32 @@
           }
         },
         "responses": {
-          "200": { "description": "Payment details updated" },
-          "404": { "description": "Invalid UPI ID" }
+          "200": { "description": "Success" }
         }
       }
-    },
-    "/allusers": {
-      "get": {
-        "summary": "Get all registered users",
-        "responses": {
-          "200": { "description": "List of all users" }
-        }
+    }
+  },
+  "components": {
+    "schemas": {
+      "UserInput": {
+        "type": "object",
+        "properties": {
+          "phnumber": { "type": "string" },
+          "name": { "type": "string" },
+          "password": { "type": "string" },
+          "dateofbirth": { "type": "string" },
+          "gender": { "type": "string" },
+          "occupation": { "type": "string" },
+          "upi_id": { "type": "string" },
+          "given_referral_code": { "type": "string" }
+        },
+        "required": ["phnumber", "name", "password", "upi_id"]
+      },
+      "User": {
+        "allOf": [
+          { "$ref": "#/components/schemas/UserInput" },
+          { "type": "object", "properties": { "_id": { "type": "string" }, "referral_code_generated": { "type": "string" } } }
+        ]
       }
     }
   }

@@ -1,28 +1,46 @@
 const express = require('express');
 const User = require('../models/userschema');
+const bcrypt = require('bcryptjs');
 
 const authRouter = express.Router();
 
 authRouter.post('/user/signup', async (req, res) => {
-  // Signup logic here
-  const { phnumber, name, dateofbirth, gender, occupation, upi_id, given_referral_code } = req.body;
-  const existingUser = await User.findOne({phnumber});
-  if(existingUser){
-    return res.status(400).json({ error: 'User with this phone number already exists' });
-  }
+  try {
+    const { phnumber, name, password, dateofbirth, gender, occupation, upi_id, given_referral_code } = req.body;
 
-  let user = new User({
-    phnumber,
-    name,
-    dateofbirth,
-    gender,
-    occupation,
-    upi_id,
-    given_referral_code,
-    referral_code_generated: generateReferralCode(10)
-  });
-  user = await user.save();
-  res.json({user});
+    const existingUser = await User.findOne({ phnumber });
+    if (existingUser) {
+      return res.status(400).json({ error: 'User with this phone number already exists' });
+    }
+
+    // Notice: We pass the PLAIN password. The Schema will hash it for us!
+    let user = new User({
+      phnumber,
+      name,
+      password, 
+      dateofbirth,
+      gender,
+      occupation,
+      upi_id,
+      given_referral_code,
+      referral_code_generated: generateReferralCode(10)
+    });
+
+    user = await user.save();
+    res.status(201).json({ user });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+authRouter.delete('/user/delete', async (req, res) => {
+  const phnumber = req.body.phnumber || req.query.phnumber;
+  const user = await User.findOneAndDelete({ phnumber });
+  if (!user) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+  res.json({ message: 'User deleted successfully' });
 });
 
 authRouter.post('/api/verify-otp', (req, res) => {
@@ -123,14 +141,27 @@ authRouter.get('/allusers', async (req, res) => {
 });
 
 
-authRouter.get('/user/login', async (req, res) => {
-  // Login logic here
-  const phnumber = req.body.phnumber || req.query.phnumber;
-  const existingUser = await User.findOne({phnumber});
-    if(!existingUser){
-      return res.status(404).json({ error: 'User not found' });
+authRouter.post('/user/login', async (req, res) => {
+  try {
+    const { phnumber, password } = req.body;
+
+    // 1. Find user by phone number
+    const user = await User.findOne({ phnumber });
+    if (!user) {
+      return res.status(400).json({ error: 'User not found' });
     }
-    res.json({ message: 'Login successful', user: existingUser });  
+
+    // 2. Compare input password with the stored hash
+
+    if (!isMatch) {
+      return res.status(400).json({ error: 'Invalid password' });
+    }
+
+    // 3. Login success
+    res.json({ message: 'Login successful', user });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
 
