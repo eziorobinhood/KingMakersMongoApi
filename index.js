@@ -13,7 +13,7 @@ app.use(authRouter);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 
-const PORT = 3000;
+const PORT = 4000;
 const mongoURI = "mongodb+srv://rrkrish123_db_user:admin@kingmakerscluster.5t6zmad.mongodb.net/?appName=kingmakerscluster";
 
 

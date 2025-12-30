@@ -1,6 +1,7 @@
 const express = require('express');
 const User = require('../models/userschema');
 const bcrypt = require('bcryptjs');
+const https = require('https');
 
 const authRouter = express.Router();
 
@@ -173,19 +174,44 @@ authRouter.post('/user/login', async (req, res) => {
 
 
 authRouter.post('/user/updatepayment', async (req, res) => {
-  // Update payment details logic here
-  const { upi_id, investedamount } = req.body;
-  const user = await User.findOneAndUpdate(
-    { upi_id },
-    { $set: { investedamount } },
-    { new: true }
-  );
-  if (!user) {
-    return res.status(404).json({ error: 'Enter valid UPI id' });
-  }
-  res.json({ message: 'Payment details updated successfully', user });
-});
+  try {
+    const { phnumber, upi_id, investedamount } = req.body;
 
+    // 1. Validation: Ensure either phone or UPI is provided
+    if (!phnumber && !upi_id) {
+      return res.status(400).json({ error: 'Please provide either a Phone Number or UPI ID' });
+    }
+
+    // 2. Find and Update using the $or operator
+    const user = await User.findOneAndUpdate(
+      {
+        $or: [
+          { phnumber: phnumber },
+          { upi_id: upi_id }
+        ]
+      },
+      { $set: { investedamount: investedamount } },
+      { new: true } // Returns the updated document instead of the old one
+    );
+
+    // 3. Check if user was found
+    if (!user) {
+      return res.status(404).json({ error: 'User not found with the provided details' });
+    }
+
+    res.json({ 
+      message: 'Payment details updated successfully', 
+      user: {
+        name: user.name,
+        phnumber: user.phnumber,
+        investedamount: user.investedamount
+      } 
+    });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 function generateReferralCode(length) {
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
