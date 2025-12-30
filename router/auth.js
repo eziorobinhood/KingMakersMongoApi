@@ -152,8 +152,15 @@ authRouter.post('/user/login', async (req, res) => {
     }
 
     // 2. Compare input password with the stored hash
+    if(user.password==null || user.password==undefined){
+      return res.status(400).json({ error: 'Password not set for this user' });
+    }
 
-    if (!isMatch) {
+    if(user.password === password){
+      return res.json({ message: 'Login successful', user });
+    }
+
+    if (user.password !== password) {
       return res.status(400).json({ error: 'Invalid password' });
     }
 
