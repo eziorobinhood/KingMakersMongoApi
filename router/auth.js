@@ -172,6 +172,14 @@ authRouter.post('/user/login', async (req, res) => {
   }
 });
 
+authRouter.delete('/user/deleteall', async (req, res) => {
+  try {
+    await User.deleteMany({});
+    res.json({ message: 'All users deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 authRouter.post('/user/updatepayment', async (req, res) => {
   try {
