@@ -14,7 +14,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 
 const PORT = 4000;
-const mongoURI = "mongodb+srv://rrkrish123_db_user:admin@kingmakerscluster.5t6zmad.mongodb.net/?appName=kingmakerscluster";
+const mongoURI = "mongodb+srv://rrkrish123_db_user:admin@kingmakerscluster.5t6zmad.mongodb.net/?appName=kingmakerscluste";
 
 
 mongoose.connect(mongoURI).then(() => {
